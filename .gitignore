@@ -1,0 +1,4 @@
+db.sqlite3 
+chromedriver.log 
+__pycache__/ 
+*.pyc 
