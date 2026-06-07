@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.core.urlresolvers import resolve
+from django.urls import resolve
 from lists.views import home_page, new_list, view_list
 from lists.models import Item, List
 
