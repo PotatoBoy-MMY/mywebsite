@@ -1,13 +1,7 @@
-from django.http import HttpResponse
+from django.shortcuts import render
 
 
 def home_page(request):
-    return HttpResponse(
-        '<html>'
-        '<title>To-Do lists</title>'
-        '<h1>To-Do</h1>'
-        '<input id="id_new_item" placeholder="Enter a to-do item" />'
-        '<table id="id_list_table">'
-        '</table>'
-        '</html>'
-    )
+    return render(request, 'home.html', {
+        'new_item_text': request.POST.get('item_text', ''),
+    })
