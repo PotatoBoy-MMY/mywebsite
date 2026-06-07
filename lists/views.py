@@ -20,4 +20,4 @@ def view_list(request, list_id):
         return redirect('/lists/%d/' % (list_.id,))
 
     items = Item.objects.filter(list=list_)
-    return render(request, 'home.html', {'list': list_, 'items': items})
+    return render(request, 'list.html', {'list': list_, 'items': items})

@@ -1,0 +1,39 @@
+<html>
+<head>
+    <title>To-Do lists</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            padding-top: 30px;
+        }
+        .jumbotron {
+            text-align: center;
+        }
+        #id_new_item {
+            width: 50%;
+            margin: 0 auto;
+        }
+        #id_list_table {
+            width: 50%;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            {% block header_text %}{% endblock %}
+
+            <form method="POST" action="{% block form_action %}{% endblock %}">
+                <input name="item_text" id="id_new_item" class="form-control input-lg" placeholder="Enter a to-do item" />
+                {% csrf_token %}
+            </form>
+        </div>
+
+        <table id="id_list_table" class="table">
+            {% block table %}
+            {% endblock %}
+        </table>
+    </div>
+</body>
+</html>

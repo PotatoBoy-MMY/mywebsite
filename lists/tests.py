@@ -10,19 +10,17 @@ class HomePageTest(TestCase):
         found = resolve('/')
         self.assertEqual(found.func, home_page)
 
-    def test_home_page_returns_correct_html(self):
+    def test_uses_home_template(self):
+        response = self.client.get('/')
+        self.assertTemplateUsed(response, 'home.html')
+
+    def test_home_page_contains_start_header_and_form(self):
         response = self.client.get('/')
 
-        self.assertTrue(response.content.startswith(b'<html>'))
         self.assertIn(b'<title>To-Do lists</title>', response.content)
-        self.assertIn(b'<h1>Start a new To-Do list</h1>', response.content)
-        self.assertIn(b'<form method="POST" action="/lists/new">', response.content)
-        self.assertIn(
-            b'<input name="item_text" id="id_new_item" placeholder="Enter a to-do item" />',
-            response.content
-        )
-        self.assertIn(b'<table id="id_list_table">', response.content)
-        self.assertTrue(response.content.strip().endswith(b'</html>'))
+        self.assertIn(b'Start a new To-Do list', response.content)
+        self.assertIn(b'action="/lists/new"', response.content)
+        self.assertIn(b'id="id_new_item"', response.content)
 
 
 class NewListTest(TestCase):
@@ -42,10 +40,10 @@ class NewListTest(TestCase):
 
 class ListViewTest(TestCase):
 
-    def test_uses_home_template(self):
+    def test_uses_list_template(self):
         list_ = List.objects.create()
         response = self.client.get('/lists/%d/' % (list_.id,))
-        self.assertTemplateUsed(response, 'home.html')
+        self.assertTemplateUsed(response, 'list.html')
 
     def test_displays_only_items_for_that_list(self):
         correct_list = List.objects.create()

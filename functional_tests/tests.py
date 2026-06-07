@@ -1,6 +1,7 @@
 from django.test import LiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import WebDriverException
 import time
 
 
@@ -8,6 +9,7 @@ class NewVisitorTest(LiveServerTestCase):
 
     def setUp(self):
         self.browser = webdriver.Chrome()
+        self.browser.set_window_size(1024, 768)
 
     def tearDown(self):
         self.browser.quit()
@@ -20,7 +22,7 @@ class NewVisitorTest(LiveServerTestCase):
                 rows = table.find_elements_by_tag_name('tr')
                 self.assertIn(row_text, [row.text for row in rows])
                 return
-            except AssertionError:
+            except (AssertionError, WebDriverException):
                 if time.time() - start_time > 5:
                     raise
                 time.sleep(0.5)
@@ -61,6 +63,7 @@ class NewVisitorTest(LiveServerTestCase):
 
         self.browser.quit()
         self.browser = webdriver.Chrome()
+        self.browser.set_window_size(1024, 768)
 
         self.browser.get(self.live_server_url)
         page_text = self.browser.find_element_by_tag_name('body').text
@@ -83,3 +86,19 @@ class NewVisitorTest(LiveServerTestCase):
         page_text = self.browser.find_element_by_tag_name('body').text
         self.assertIn('Buy flowers', page_text)
         self.assertNotIn('Buy milk', page_text)
+
+    def test_layout_and_styling(self):
+        self.browser.get(self.live_server_url)
+        self.browser.set_window_size(1024, 768)
+
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox_center = inputbox.location['x'] + inputbox.size['width'] / 2
+        self.assertAlmostEqual(inputbox_center, 512, delta=20)
+
+        inputbox.send_keys('testing layout')
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table('1: testing layout')
+
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox_center = inputbox.location['x'] + inputbox.size['width'] / 2
+        self.assertAlmostEqual(inputbox_center, 512, delta=20)
