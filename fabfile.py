@@ -31,6 +31,11 @@ def deploy(c):
     c.run(f"mkdir -p {source_folder}")
 
     print("== 2. Get latest source code ==")
+    before_commit = c.run(
+        f"if [ -d {source_folder}/.git ]; then cd {source_folder} && git rev-parse --short HEAD; else echo NONE; fi",
+        hide=True
+    ).stdout.strip()
+
     c.run(
         f"""
         if [ -d {source_folder}/.git ]; then
@@ -40,7 +45,18 @@ def deploy(c):
         fi
         """
     )
+
     c.run(f"cd {source_folder} && git reset --hard origin/{BRANCH}")
+
+    after_commit = c.run(
+        f"cd {source_folder} && git rev-parse --short HEAD",
+        hide=True
+    ).stdout.strip()
+
+    if before_commit == after_commit:
+        print(f"SOURCE RESULT: no code changes, still at {after_commit}")
+    else:
+        print(f"SOURCE RESULT: code updated from {before_commit} to {after_commit}")
 
     print("== 3. Create secret key if needed ==")
     c.run(
@@ -72,7 +88,34 @@ EOF
     c.run(f"cd {source_folder} && {venv_folder}/bin/python manage.py migrate --noinput")
 
     print("== 7. Collect static files ==")
-    c.run(f"cd {source_folder} && {venv_folder}/bin/python manage.py collectstatic --noinput")
+    before_static_count = c.run(
+        f"find {static_folder} -type f 2>/dev/null | wc -l",
+        hide=True
+    ).stdout.strip()
+
+    collectstatic_result = c.run(
+        f"cd {source_folder} && {venv_folder}/bin/python manage.py collectstatic --noinput",
+        hide=True
+    )
+
+    collectstatic_output = collectstatic_result.stdout.strip()
+    print(collectstatic_output)
+
+    after_static_count = c.run(
+        f"find {static_folder} -type f 2>/dev/null | wc -l",
+        hide=True
+    ).stdout.strip()
+
+    if "0 static files copied" in collectstatic_output and "unmodified" in collectstatic_output:
+        print(
+            f"STATIC RESULT: no static file changes. "
+            f"file count before={before_static_count}, after={after_static_count}"
+        )
+    else:
+        print(
+            f"STATIC RESULT: static files updated. "
+            f"file count before={before_static_count}, after={after_static_count}"
+        )
 
     print("== 8. Upload nginx config ==")
     nginx_conf = render_template(
